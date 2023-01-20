@@ -24,8 +24,13 @@ const isValidUserToken = async (user) => {
     return !storedToken? false: true;
 }
 
+const fetchUserToken = async (queryObj) => {
+    return await UserToken.findOne(queryObj);
+}
+
 module.exports = {
     createUserTokenTable,
     createUserToken,
-    isValidUserToken
+    isValidUserToken,
+    fetchUserToken
 }

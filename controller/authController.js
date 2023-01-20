@@ -2,6 +2,7 @@ const userTokenRepository = require('../dao/repository/userToken.repository');
 const jwt = require('jsonwebtoken');
 const authConfig = require('../configs/auth.config');
 const {randomBytes} = require('crypto');
+const blackListedTokens = {};
 
 function getRefreshToken() {
     return randomBytes(64).toString('hex');
@@ -43,8 +44,9 @@ const fetchNewAccessToken = (req, res) => {
 
     // if token hasn't expired
     if(Date.now() < payload.exp*1000){
-        res.status(204).send();
-        return;
+        return res.status(400).send({
+            message: "Token hasn't expired yet!"
+        });
     }
 
     userTokenRepository.isValidUserToken({
@@ -77,21 +79,63 @@ const validate = (req, res) => {
     const accessToken = authHeader.split(' ')[1];
 
     if(!accessToken){
-        res.sendStatus(401);
-        return;
+        return res.status.send({
+            message: "Token is required!"
+        });
+    }
+    if(blackListedTokens[accessToken]){
+        return res.status(401).send({
+            message: "Token is revoked!"
+        });
     }
 
     jwt.verify(accessToken, authConfig.ACCESS_TOKEN_SECRET, (err, payload) => {
         if(err){
-            res.sendStatus(403);
-            return;
+            return res.status(401).send({
+                message: err.message
+            });
         }
         res.status(200).send(payload);
     });
 }
 
+const validateAndDeleteUserToken = (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const accessToken = authHeader.split(' ')[1];
+
+    if(!accessToken){
+        return res.status.send({
+            message: "Token is required!"
+        });
+    }
+    
+    jwt.verify(accessToken, authConfig.ACCESS_TOKEN_SECRET, (err, payload) => {
+        if(err){
+            return res.status(401).send({
+                message: err.message
+            });
+        }
+        userTokenRepository.fetchUserToken({
+            where: {
+                username: payload.username
+            }
+        }).then(userToken => {
+            userToken.destroy();
+        }).then(() => {
+            blackListedTokens[accessToken] = true;
+            res.sendStatus(200);
+        }).catch(error => {
+            console.log("Error occured!", error.message);
+            res.status(500).send({
+                message: "Couldn't complete request. Please try again after sometime!"
+            });
+        })
+    })
+}
+
 module.exports = {
     getUserToken,
     fetchNewAccessToken,
-    validate
+    validate,
+    validateAndDeleteUserToken
 }
