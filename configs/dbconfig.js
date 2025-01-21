@@ -1,14 +1,15 @@
 require('dotenv').config();
 module.exports = {
-    HOST: '127.0.0.1',
+    HOST: process.env.DB_URI,
     PORT: 3306,
-    USER: 'root',
+    USER: process.env.DB_USER,
     DB: 'ecom_db',
-    dialect: 'mysql',
+    dialect: 'postgres',
     pool: {
         max: 5,
         min: 0,
         acquire: 30000,
         idle: 10000
-    }
+    },
+    logging: false
 }

@@ -4,7 +4,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 const connection = new Sequelize(
     config.DB,
     config.USER,
-    process.env.PASSWORD,
+    process.env.DB_PASSWORD,
     {
         host: config.HOST,
         dialect: config.dialect,
@@ -13,7 +13,8 @@ const connection = new Sequelize(
             min: config.pool.min,
             acquire: config.pool.acquire,
             idle: config.pool.idle
-        }
+        },
+        logging: config.logging
     }
 );
 

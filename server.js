@@ -14,8 +14,10 @@ app.get("/", (req, res) => {
     createUserTokenTable();
 })();
 
-app.listen(process.env.PORT, (err) => {
+app.listen(process.env.PORT, process.env.HOST, (err) => {
     if(err){
         console.log("Error in starting server", err);
+    } else {
+        console.log(`Server is running on ${process.env.HOST}:${process.env.PORT}`);
     }
 });
