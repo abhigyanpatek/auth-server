@@ -1,10 +1,14 @@
 require('dotenv').config();
 module.exports = {
     HOST: process.env.DB_URI,
-    PORT: 3306,
     USER: process.env.DB_USER,
-    DB: 'ecom_db',
-    dialect: 'postgres',
+    DB: process.env.DB_NAME,
+    dialect: process.env.DB_DIALECT,
+    dialectOptions: {
+        ssl: process.env.DB_SSL === 'true'
+        ? { require: true, rejectUnauthorized: false }
+        : false,
+      },
     pool: {
         max: 5,
         min: 0,
